@@ -1,4 +1,8 @@
-let clowns = [];
+let DataStore = require('nedb');
+let db = new DataStore({
+    filename: './data/clowns.db',
+    autoload: true
+});
 
 function Clown(name, hair, shoeSize, weapon, psycho) {
     this.name = name;
@@ -9,43 +13,38 @@ function Clown(name, hair, shoeSize, weapon, psycho) {
     this.dead = false;
 }
 
-function findClown(index) {
-    if (index && index < clowns.length) {
-        return clowns[index];
-    }
-    return { error: "That clown is still hiding." }
-}
+function findClown(id, cb) {
+    db.findOne({_id: id}, cb);    
+};
 
-function addClown(clown) {
+function addClown(clown, cb) {
     let newClown = new Clown(clown.name, clown.hair, clown.shoeSize, clown.weapon, clown.psycho);
-    clowns.push(newClown);
-    return {message: "Clown added."}
-}
-
-function getClowns() {
-    return clowns;
-}
-
-function killClown(index) {
-    let clown = findClown(index);
-    if (clown.error) {
-        return clown
-    }
-    clowns[index].dead = true;
-    return { message: "Clown is dead." }
-}
-
-function editClown(index, newClown) {
-    let clown = findClown(index);
-    if (clown.error) {
-        return clown
-    }
-    for(let prop in clown){
-        if(prop !== 'id'){
-            clown[prop] = newClown[prop];
+    db.insert(newClown, function(err, newClown){
+        if(err){
+            return cb(err);
         }
-    }
-    return {message: "Clown updated."}
+    return cb(null, {message: "Clown added."});
+    })
+}
+
+function getClowns(cb) {
+    db.find({}, cb)
+}
+
+function killClown(id, cb) {
+
+    db.update({_id: id}, {$set: {dead:true} }, {}, cb)
+};
+
+function editClown(id, newClown, cb) {
+
+    db.update({_id: id}, {$set: {
+        name: newClown.name,
+        hair: newClown.hair,
+        shoeSize: newClown.shoeSize,
+        weapon: newClown.weapon,
+        psycho: newClown.psycho
+    }}, {}, cb)
 }
 
 module.exports = {
