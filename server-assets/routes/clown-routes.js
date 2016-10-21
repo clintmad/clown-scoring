@@ -35,7 +35,7 @@ routes.route('/clowns/:id?')
     .delete(function (req, res) {
         Clown.killClown(req.params.id, function (err, numReplaced) {
             if(err){
-                return res.sendStatustatus(204);
+                return res.sendStatus(204);
             }
             res.sendStatus(418);
         })
