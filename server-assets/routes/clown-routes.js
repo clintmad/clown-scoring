@@ -25,19 +25,29 @@ routes.route('/clowns/:id?')
         })
     })
     .put(function (req, res) {
-        Clown.editClown(req.params.id, req.body.clown, function(err, numReplaced){
-            if(err){
+        Clown.editClown(req.params.id, req.body.clown, function (err, numReplaced) {
+            if (err) {
                 return res.send(err)
             }
-            res.send({message: "Successfully added " + numReplaced + " fields"})
+            res.send({ message: "Successfully added " + numReplaced + " fields" })
         });
     })
     .delete(function (req, res) {
         Clown.killClown(req.params.id, function (err, numReplaced) {
-            if(err){
+            if (err) {
                 return res.sendStatus(204);
             }
             res.sendStatus(418);
+        })
+    })
+
+routes.route('/clowns/:id/details')
+    .get(function (req, res) {
+        Clown.findClownAndItsLocations(req.params.id, function (err, clown) {
+            if (err) {
+                return res.send(err)
+            }
+            res.send(clown)
         })
     })
 

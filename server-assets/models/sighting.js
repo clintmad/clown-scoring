@@ -17,6 +17,10 @@ function Sighting(sighting) {
     this.old = false;
 }
 
+function findClownSightings(clownId, cb){
+    db.find({clownId: clownId}, cb)
+}
+
 function findSighting(id, cb) {
     db.findOne({ _id: id }, cb)
 }
@@ -68,5 +72,6 @@ module.exports = {
     getSightings,
     editSighting,
     oldSighting,
-    getSighting: findSighting
+    getSighting: findSighting,
+    findClownSightings
 }
