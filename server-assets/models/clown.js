@@ -1,9 +1,8 @@
 let Sighting = require('./sighting');
-let DataStore = require('nedb');
-let db = new DataStore({
-    filename: './data/clowns.db',
-    autoload: true
-});
+let ds = require('./data-adapter');
+let db = ds.Clown;
+let sightings = ds.Sighting;
+
 
 function Clown(name, hair, shoeSize, weapon, psycho) {
     this.name = name;
@@ -16,16 +15,16 @@ function Clown(name, hair, shoeSize, weapon, psycho) {
 }
 
 function findClown(id, cb) {
-    db.findOne({_id: id}, cb);    
+    db.findOne({ _id: id }, cb);
 };
 
-function findClownAndItsLocations(id, cb){
-    db.findOne({_id: id}, function(err, clown){
-        if(err || !clown){
+function findClownAndItsLocations(id, cb) {
+    db.findOne({ _id: id }, function (err, clown) {
+        if (err || !clown) {
             return cb(err)
         }
-        Sighting.findClownSightings(clown._id, function(err, sightings){
-            if(err){
+        Sighting.findClownSightings(clown._id, function (err, sightings) {
+            if (err) {
                 return cb(err)
             }
             clown.sightingLocations = sightings
@@ -36,11 +35,11 @@ function findClownAndItsLocations(id, cb){
 
 function addClown(clown, cb) {
     let newClown = new Clown(clown.name, clown.hair, clown.shoeSize, clown.weapon, clown.psycho);
-    db.insert(newClown, function(err, newClown){
-        if(err){
+    db.insert(newClown, function (err, newClown) {
+        if (err) {
             return cb(err);
         }
-    return cb(null, {message: "Clown added."});
+        return cb(null, { message: "Clown added." });
     })
 }
 
@@ -50,19 +49,43 @@ function getClowns(cb) {
 
 function killClown(id, cb) {
 
-    db.update({_id: id}, {$set: {dead:true} }, {}, cb)
+    db.update({ _id: id }, { $set: { dead: true } }, {}, cb)
 };
 
 function editClown(id, newClown, cb) {
 
-    db.update({_id: id}, {$set: {
-        name: newClown.name,
-        hair: newClown.hair,
-        shoeSize: newClown.shoeSize,
-        weapon: newClown.weapon,
-        psycho: newClown.psycho,
-        sightings: newClown.sightings
-    }}, {}, cb)
+    db.update({ _id: id }, {
+        $set: {
+            name: newClown.name,
+            hair: newClown.hair,
+            shoeSize: newClown.shoeSize,
+            weapon: newClown.weapon,
+            psycho: newClown.psycho,
+            sightings: newClown.sightings
+        }
+    }, {}, cb)
+}
+
+function addSighting(sighting, cb) {
+    findClown(sighting.clownId, function (err, clown) {
+        if (!clown || err) {
+            return cb({ error: err, message: 'Sorry that did not work.' })
+        }
+        let newSighting = new Sighting.createSighting(sighting);
+        sightings.insert(newSighting, function (err, savedSighting) {
+            if (err) {
+                return cb(err)
+            }
+            clown.sightings = clown.sightings || []
+            clown.sightings.push(savedSighting._id)
+            editClown(clown._id, clown, function (err) {
+                if (err) {
+                    cb(err)
+                }
+                cb(null, { message: 'You are lucky to be alive with having seen ' + clown.name + ' the clown!' })
+            })
+        })
+    })
 }
 
 module.exports = {
@@ -71,7 +94,8 @@ module.exports = {
     killClown,
     editClown,
     getClown: findClown,
-    findClownAndItsLocations
-    
+    findClownAndItsLocations,
+    addSighting
+
 }
 

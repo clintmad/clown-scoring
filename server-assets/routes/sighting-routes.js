@@ -16,14 +16,6 @@ routes.route('/sightings/:id?')
             res.send(data);
         }
     })
-    .post(function(req, res){
-        Sighting.addSighting(req.body.sighting, function(err, data){
-            if(err){
-                return res.send(err)
-            }
-            res.send(data);
-        })
-    })
     .put(function(req, res){
         Sighting.editSighting(req.params.id, req.body.sighting, function(err, numReplaced){
             if(err){

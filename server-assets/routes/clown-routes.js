@@ -4,7 +4,7 @@ let Clown = require('../models/clown')
 routes.route('/clowns/:id?')
     .get(function (req, res) {
         if (req.params.id) {
-            Clown.getClown(req.params.id, handleResponse);
+            Clown.findClownAndItsLocations(req.params.id, handleResponse);
             return
         }
         Clown.getClowns(handleResponse)
@@ -41,9 +41,9 @@ routes.route('/clowns/:id?')
         })
     })
 
-routes.route('/clowns/:id/details')
-    .get(function (req, res) {
-        Clown.findClownAndItsLocations(req.params.id, function (err, clown) {
+routes.route('/clown/spotted')
+    .post(function (req, res) {
+        Clown.addSighting(req.body.sighting, function (err, clown) {
             if (err) {
                 return res.send(err)
             }
